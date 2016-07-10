@@ -5,6 +5,9 @@ test <- read.csv("D:/Jason/Data/titanic/test.csv")
 View(train)
 View(test)
 
+# imports needed
+library(ggplot2)
+
 # Combine the training and test files
 test$Survived <- NA
 combi <- rbind(train, test)
@@ -47,5 +50,15 @@ summary(combi$Age)
 table(combi$Title[is.na(combi$Age)])
 
 # Visualize ages on titles
-ggplot(combi, aes(x=combi$Title, y=combi$Age))
-  + geom_boxplot()
+ggplot(combi, aes(x=combi$Title, y=combi$Age)) +
+  geom_boxplot()
+
+# There's still a wide array of titles
+summary(combi$Title)
+
+# But that's okay, I now want to calculate the median age of each title.
+dump <- combi[is.na(combi$Age)==FALSE,]
+medages <- aggregate(dump$Age, list(dump$Title), median)
+names(medages)[names(medages)=='Group.1'] <- 'Title'
+names(medages)[names(medages)=='x'] <- 'Age'
+
