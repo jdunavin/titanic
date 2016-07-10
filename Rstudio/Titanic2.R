@@ -1,5 +1,5 @@
 # Set working directory and import data files
-setwd("D:/Jason")
+setwd("D:/Jason/Projects/titanic/Rstudio")
 train <- read.csv("D:/Jason/Data/titanic/train.csv")
 test <- read.csv("D:/Jason/Data/titanic/test.csv")
 View(train)
