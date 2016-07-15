@@ -1,3 +1,5 @@
+# This script is awful - it didn't even score in the 50s!
+
 # Set working directory and import data files
 setwd("D:/Jason/Projects/titanic/Rstudio")
 train <- read.csv("D:/Jason/Data/titanic/train.csv")
@@ -7,6 +9,9 @@ View(test)
 
 # imports needed
 library(ggplot2)
+library(dplyr)
+library(magrittr)
+library(randomForest) # This package was made by the method's original inventors!
 
 # Combine the training and test files
 test$Survived <- NA
@@ -60,5 +65,41 @@ summary(combi$Title)
 dump <- combi[is.na(combi$Age)==FALSE,]
 medages <- aggregate(dump$Age, list(dump$Title), median)
 names(medages)[names(medages)=='Group.1'] <- 'Title'
-names(medages)[names(medages)=='x'] <- 'Age'
+names(medages)[names(medages)=='x'] <- 'Age2'
 
+combi <- merge(combi,medages,by='Title')
+#Not sure if this is right
+combi$Age[is.na(combi$Age)] <- combi$Age2
+
+#Need to turn factor data back into factors
+factor_vars<-c('Pclass','Sex','Embarked','Title')
+combi[factor_vars]<-lapply(combi[factor_vars],function(x) as.factor(x))
+
+# At this point the data should be clean, let's split them back apart
+train1 = combi[combi$PassengerId >= 1 & combi$PassengerId <=891,]
+test1 = combi[combi$PassengerId>891,]
+
+# What are we going to try? How about a random forest?
+
+#Make the model
+rfmodel <- randomForest(factor(Survived)~Pclass+Title+Sex+Age+Embarked+FamilySize+Fare, data=train1)
+
+#Plot the error rate by #trees grown
+plot(rfmodel, ylim=c(0,0.36))
+legend('topright', colnames(rfmodel$err.rate), col=1:3, fill=1:3)
+
+#Variable importance
+importance    <- importance(rfmodel)
+varImportance <- data.frame(Variables = row.names(importance), Importance = round(importance[ ,'MeanDecreaseGini'],2))
+rankImportance <- varImportance %>% mutate(Rank = paste0('#',dense_rank(desc(Importance))))
+ggplot(rankImportance, aes(x = reorder(Variables, Importance), 
+                           y = Importance, fill = Importance)) +
+  geom_bar(stat='identity') + 
+  geom_text(aes(x = Variables, y = 0.5, label = Rank), hjust=0, vjust=0.55, size = 4, colour = 'red') +
+  labs(x = 'Variables') +
+  coord_flip()
+
+#Create a submission
+prediction <- predict(rfmodel, test1)
+solution <- data.frame(PassengerID = test$PassengerId, Survived = prediction)
+write.csv(solution, file = 'rf_mod_Solution.csv', row.names = F)
