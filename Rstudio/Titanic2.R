@@ -101,5 +101,12 @@ ggplot(rankImportance, aes(x = reorder(Variables, Importance),
 
 #Create a submission
 prediction <- predict(rfmodel, test1)
-solution <- data.frame(PassengerID = test$PassengerId, Survived = prediction)
+pred <- data.frame(prediction)
+pred$id <- row.names(pred)
+
+# They're all out of order, so join them back to the test file
+testsoln <- data.frame(id=row.names(test1),test1)
+testsoln <- merge(testsoln, pred, by="id")
+
+solution <- data.frame(PassengerID = testsoln$PassengerId, Survived =testsoln$prediction)
 write.csv(solution, file = 'rf_mod_Solution.csv', row.names = F)
