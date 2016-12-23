@@ -1,4 +1,4 @@
-# This script is awful - it didn't even score in the 50s!
+# This script put me in roughly 1400th place
 
 # Set working directory and import data files
 setwd("D:/Jason/Projects/titanic/Rstudio")
@@ -82,7 +82,7 @@ test1 = combi[combi$PassengerId>891,]
 # What are we going to try? How about a random forest?
 
 #Make the model
-rfmodel <- randomForest(factor(Survived)~Pclass+Title+Sex+Age+Embarked+FamilySize+Fare, data=train1)
+rfmodel <- randomForest(factor(Survived)~Pclass+Title+Sex+Age+Embarked+FamilySize+Fare, data=train1, nodesize=2, proximity=TRUE)
 
 #Plot the error rate by #trees grown
 plot(rfmodel, ylim=c(0,0.36))
@@ -109,4 +109,4 @@ testsoln <- data.frame(id=row.names(test1),test1)
 testsoln <- merge(testsoln, pred, by="id")
 
 solution <- data.frame(PassengerID = testsoln$PassengerId, Survived =testsoln$prediction)
-write.csv(solution, file = 'rf_mod_Solution.csv', row.names = F)
+write.csv(solution, file = 'rf_mod_Solution2.csv', row.names = F)
